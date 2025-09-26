@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayrollPro | Employee Management System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --info: #4895ef;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --sidebar-width: 250px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        #sidebar {
+            min-height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            transition: all 0.3s;
+            position: fixed;
+            z-index: 1000;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        #sidebar.active {
+            margin-left: calc(var(--sidebar-width) * -1);
+        }
+        
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        #sidebar ul.components {
+            padding: 20px 0;
+        }
+        
+        #sidebar ul li a {
+            padding: 15px 20px;
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        #sidebar ul li a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        #sidebar ul li.active > a {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        #sidebar ul li a i {
+            margin-right: 10px;
+        }
+        
+        /* Content Styles */
+        #content {
+            width: calc(100% - var(--sidebar-width));
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s;
+            min-height: 100vh;
+        }
+        
+        #content.active {
+            width: 100%;
+            margin-left: 0;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 20px;
+        }
+        
+        .page-content {
+            padding: 20px;
+        }
+        
+        /* Dashboard Cards */
+        .dashboard-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            opacity: 0.7;
+        }
+        
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        /* Tables */
+        .data-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Forms */
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Toggle Button */
+        #sidebarCollapse {
+            background: var(--primary);
+            border: none;
+            border-radius: 5px;
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            #sidebar {
+                margin-left: calc(var(--sidebar-width) * -1);
+            }
+            
+            #sidebar.active {
+                margin-left: 0;
+            }
+            
+            #content {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            #content.active {
+                width: calc(100% - var(--sidebar-width));
+                margin-left: var(--sidebar-width);
+            }
+        }
+        
+        /* Animation for page transitions */
+        .page {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Custom badges */
+        .badge-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .badge-approved {
+            background-color: #198754;
+        }
+        
+        .badge-rejected {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-money-check-alt"></i> PayrollPro</h3>
+        </div>
+        
+        <ul class="list-unstyled components">
+            <li class="active">
+                <a href="#dashboard" class="nav-link" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="#employees" class="nav-link" data-page="employees">
+                    <i class="fas fa-users"></i> Employees
+                </a>
+            </li>
+            <li>
+                <a href="#payroll" class="nav-link" data-page="payroll">
+                    <i class="fas fa-file-invoice-dollar"></i> Payroll
+                </a>
+            </li>
+            <li>
+                <a href="#reports" class="nav-link" data-page="reports">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </a>
+            </li>
+            <li>
+                <a href="#settings" class="nav-link" data-page="settings">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </li>
+        </ul>
+        
+        <div class="p-3">
+            <div class="card bg-light text-dark">
+                <div class="card-body text-center">
+                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" 
+                         class="rounded-circle mb-2" width="60" alt="User">
+                    <h6 class="card-title mb-1">Admin User</h6>
+                    <p class="card-text small text-muted">Administrator</p>
+                    <a href="#" class="btn btn-sm btn-outline-primary">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="content">
+        <!-- Top Navbar -->
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid">
+                <button type="button" id="sidebarCollapse" class="btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="d-flex align-items-center">
+                    <div class="dropdown me-3">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="notificationsDropdown" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge bg-danger">3</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
+                            <li><a class="dropdown-item" href="#">New payroll processed</a></li>
+                            <li><a class="dropdown-item" href="#">2 pending approvals</a></li>
+                            <li><a class="dropdown-item" href="#">System update scheduled</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" 
+                                 class="rounded-circle" width="30" alt="User">
+                            <span class="ms-2 d-none d-sm-inline">Admin User</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content Areas -->
+        <div class="container-fluid page-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard" class="page active">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="fas fa-calendar"></i> This week
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card dashboard-card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Employees
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">142</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users card-icon text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card dashboard-card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            This Month's Payroll
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">$245,320</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign card-icon text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card dashboard-card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Pending Approvals
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">8</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clipboard-list card-icon text-info"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card dashboard-card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Upcoming Payments
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-calendar card-icon text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="chart-container">
+                            <h5 class="card-title">Payroll Overview</h5>
+                            <canvas id="payrollChart" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="chart-container">
+                            <h5 class="card-title">Department Distribution</h5>
+                            <canvas id="departmentChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="chart-container">
+                            <h5 class="card-title">Recent Activity</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Employee</th>
+                                            <th>Activity</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>2023-04-15</td>
+                                            <td>John Smith</td>
+                                            <td>Salary adjustment approved</td>
+                                            <td><span class="badge badge-approved">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2023-04-14</td>
+                                            <td>Sarah Johnson</td>
+                                            <td>Overtime payment processed</td>
+                                            <td><span class="badge badge-approved">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2023-04-13</td>
+                                            <td>Michael Brown</td>
+                                            <td>Leave deduction applied</td>
+                                            <td><span class="badge badge-pending">Pending</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2023-04-12</td>
+                                            <td>Emily Davis</td>
+                                            <td>Bonus payment approved</td>
+                                            <td><span class="badge badge-approved">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2023-04-11</td>
+                                            <td>Robert Wilson</td>
+                                            <td>Tax exemption request</td>
+                                            <td><span class="badge badge-rejected">Rejected</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employees Page -->
+            <div id="employees" class="page">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Employee Management</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> Add Employee
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="form-container">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" placeholder="Search employees...">
+                                        <button class="btn btn-outline-secondary" type="button">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select">
+                                        <option selected>All Departments</option>
+                                        <option>Engineering</option>
+                                        <option>Marketing</option>
+                                        <option>Sales</option>
+                                        <option>HR</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select">
+                                        <option selected>All Status</option>
+                                        <option>Active</option>
+                                        <option>Inactive</option>
+                                        <option>On Leave</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-secondary w-100">
+                                        <i class="fas fa-filter"></i> Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="data-table">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Employee ID</th>
+                                            <th>Name</th>
+                                            <th>Department</th>
+                                            <th>Position</th>
+                                            <th>Salary</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>EMP-001</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=John+Smith&background=random" 
+                                                         class="rounded-circle me-2" width="30" alt="Avatar">
+                                                    John Smith
+                                                </div>
+                                            </td>
+                                            <td>Engineering</td>
+                                            <td>Senior Developer</td>
+                                            <td>$85,000</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>EMP-002</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=random" 
+                                                         class="rounded-circle me-2" width="30" alt="Avatar">
+                                                    Sarah Johnson
+                                                </div>
+                                            </td>
+                                            <td>Marketing</td>
+                                            <td>Marketing Manager</td>
+                                            <td>$75,000</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>EMP-003</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Michael+Brown&background=random" 
+                                                         class="rounded-circle me-2" width="30" alt="Avatar">
+                                                    Michael Brown
+                                                </div>
+                                            </td>
+                                            <td>Sales</td>
+                                            <td>Sales Executive</td>
+                                            <td>$65,000</td>
+                                            <td><span class="badge bg-warning">On Leave</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>EMP-004</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Emily+Davis&background=random" 
+                                                         class="rounded-circle me-2" width="30" alt="Avatar">
+                                                    Emily Davis
+                                                </div>
+                                            </td>
+                                            <td>HR</td>
+                                            <td>HR Specialist</td>
+                                            <td>$60,000</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>EMP-005</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Robert+Wilson&background=random" 
+                                                         class="rounded-circle me-2" width="30" alt="Avatar">
+                                                    Robert Wilson
+                                                </div>
+                                            </td>
+                                            <td>Engineering</td>
+                                            <td>DevOps Engineer</td>
+                                            <td>$90,000</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center p-3">
+                                <div>Showing 1 to 5 of 142 entries</div>
+                                <nav>
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#">Previous</a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payroll Page -->
+            <div id="payroll" class="page">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Payroll Management</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary me-2">
+                            <i class="fas fa-plus"></i> Process Payroll
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="form-container">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="payPeriod" class="form-label">Pay Period</label>
+                                    <select class="form-select" id="payPeriod">
+                                        <option selected>April 2023</option>
+                                        <option>March 2023</option>
+                                        <option>February 2023</option>
+                                        <option>January 2023</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="departmentFilter" class="form-label">Department</label>
+                                    <select class="form-select" id="departmentFilter">
+                                        <option selected>All Departments</option>
+                                        <option>Engineering</option>
+                                        <option>Marketing</option>
+                                        <option>Sales</option>
+                                        <option>HR</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="statusFilter" class="form-label">Status</label>
+                                    <select class="form-select" id="statusFilter">
+                                        <option selected>All Status</option>
+                                        <option>Processed</option>
+                                        <option>Pending</option>
+                                        <option>Approved</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="data-table">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Payroll ID</th>
+                                            <th>Employee</th>
+                                            <th>Department</th>
+                                            <th>Period</th>
+                                            <th>Gross Pay</th>
+                                            <th>Net Pay</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PR-2023-001</td>
+                                            <td>John Smith</td>
+                                            <td>Engineering</td>
+                                            <td>Apr 1-15, 2023</td>
+                                            <td>$3,269.23</td>
+                                            <td>$2,450.00</td>
+                                            <td><span class="badge bg-success">Processed</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>PR-2023-002</td>
+                                            <td>Sarah Johnson</td>
+                                            <td>Marketing</td>
+                                            <td>Apr 1-15, 2023</td>
+                                            <td>$2,884.62</td>
+                                            <td>$2,163.46</td>
+                                            <td><span class="badge bg-success">Processed</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>PR-2023-003</td>
+                                            <td>Michael Brown</td>
+                                            <td>Sales</td>
+                                            <td>Apr 1-15, 2023</td>
+                                            <td>$2,500.00</td>
+                                            <td>$1,875.00</td>
+                                            <td><span class="badge bg-warning">Pending</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>PR-2023-004</td>
+                                            <td>Emily Davis</td>
+                                            <td>HR</td>
+                                            <td>Apr 1-15, 2023</td>
+                                            <td>$2,307.69</td>
+                                            <td>$1,730.77</td>
+                                            <td><span class="badge bg-success">Processed</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>PR-2023-005</td>
+                                            <td>Robert Wilson</td>
+                                            <td>Engineering</td>
+                                            <td>Apr 1-15, 2023</td>
+                                            <td>$3,461.54</td>
+                                            <td>$2,596.15</td>
+                                            <td><span class="badge bg-info">Approved</span></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="chart-container mb-4">
+                            <h5 class="card-title">Payroll Summary</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Gross Pay:</span>
+                                <strong>$14,423.08</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Deductions:</span>
+                                <strong>$3,605.77</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Net Pay:</span>
+                                <strong>$10,817.31</strong>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Processed:</span>
+                                <strong>3 employees</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Pending:</span>
+                                <strong>1 employee</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Approved:</span>
+                                <strong>1 employee</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h5 class="card-title">Quick Actions</h5>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary">
+                                    <i class="fas fa-plus me-2"></i> Add New Payroll
+                                </button>
+                                <button class="btn btn-outline-success">
+                                    <i class="fas fa-check me-2"></i> Approve Pending
+                                </button>
+                                <button class="btn btn-outline-info">
+                                    <i class="fas fa-file-export me-2"></i> Export Report
+                                </button>
+                                <button class="btn btn-outline-warning">
+                                    <i class="fas fa-envelope me-2"></i> Send Notifications
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports" class="page">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Reports & Analytics</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="form-container">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="reportType" class="form-label">Report Type</label>
+                                    <select class="form-select" id="reportType">
+                                        <option selected>Payroll Summary</option>
+                                        <option>Employee Earnings</option>
+                                        <option>Tax Deductions</option>
+                                        <option>Department Analysis</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="dateFrom" class="form-label">From</label>
+                                    <input type="date" class="form-control" id="dateFrom" value="2023-01-01">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="dateTo" class="form-label">To</label>
+                                    <input type="date" class="form-control" id="dateTo" value="2023-04-15">
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100">
+                                        <i class="fas fa-chart-bar"></i> Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="chart-container">
+                            <h5 class="card-title">Payroll Trends (2023)</h5>
+                            <canvas id="payrollTrendsChart" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="chart-container">
+                            <h5 class="card-title">Department Costs</h5>
+                            <canvas id="departmentCostsChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5 class="card-title">Tax Distribution</h5>
+                            <canvas id="taxDistributionChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="chart-container">
+                            <h5 class="card-title">Employee Count by Department</h5>
+                            <canvas id="employeeCountChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings" class="page">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">System Settings</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-sm btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="list-group mb-4">
+                            <a href="#" class="list-group-item list-group-item-action active" data-bs-toggle="list" data-setting="general">
+                                <i class="fas fa-cog me-2"></i> General Settings
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="list" data-setting="payroll">
+                                <i class="fas fa-file-invoice-dollar me-2"></i> Payroll Settings
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="list" data-setting="tax">
+                                <i class="fas fa-percentage me-2"></i> Tax Settings
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="list" data-setting="users">
+                                <i class="fas fa-users me-2"></i> User Management
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="list" data-setting="security">
+                                <i class="fas fa-shield-alt me-2"></i> Security
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="form-container">
+                            <div class="tab-content">
+                                <!-- General Settings -->
+                                <div class="tab-pane active" id="general">
+                                    <h5 class="card-title">General Settings</h5>
+                                    <div class="mb-3">
+                                        <label for="companyName" class="form-label">Company Name</label>
+                                        <input type="text" class="form-control" id="companyName" value="Tech Solutions Inc.">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="companyAddress" class="form-label">Company Address</label>
+                                        <textarea class="form-control" id="companyAddress" rows="3">123 Business Ave, Suite 100, New York, NY 10001</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="currency" class="form-label">Currency</label>
+                                        <select class="form-select" id="currency">
+                                            <option selected>US Dollar ($)</option>
+                                            <option>Euro (€)</option>
+                                            <option>British Pound (£)</option>
+                                            <option>Japanese Yen (¥)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="timezone" class="form-label">Timezone</label>
+                                        <select class="form-select" id="timezone">
+                                            <option selected>Eastern Time (ET)</option>
+                                            <option>Central Time (CT)</option>
+                                            <option>Mountain Time (MT)</option>
+                                            <option>Pacific Time (PT)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payroll Settings -->
+                                <div class="tab-pane" id="payroll">
+                                    <h5 class="card-title">Payroll Settings</h5>
+                                    <div class="mb-3">
+                                        <label for="payFrequency" class="form-label">Pay Frequency</label>
+                                        <select class="form-select" id="payFrequency">
+                                            <option selected>Bi-weekly</option>
+                                            <option>Weekly</option>
+                                            <option>Semi-monthly</option>
+                                            <option>Monthly</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="payDay" class="form-label">Pay Day</label>
+                                        <select class="form-select" id="payDay">
+                                            <option selected>Friday</option>
+                                            <option>Monday</option>
+                                            <option>Tuesday</option>
+                                            <option>Wednesday</option>
+                                            <option>Thursday</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Overtime Calculation</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="overtimeCalc" id="overtime1" checked>
+                                            <label class="form-check-label" for="overtime1">
+                                                After 40 hours per week
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="overtimeCalc" id="overtime2">
+                                            <label class="form-check-label" for="overtime2">
+                                                After 8 hours per day
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="overtimeRate" class="form-label">Overtime Rate Multiplier</label>
+                                        <input type="number" class="form-control" id="overtimeRate" value="1.5" step="0.1" min="1">
+                                    </div>
+                                </div>
+                                
+                                <!-- Tax Settings -->
+                                <div class="tab-pane" id="tax">
+                                    <h5 class="card-title">Tax Settings</h5>
+                                    <div class="mb-3">
+                                        <label for="federalTax" class="form-label">Federal Tax Rate (%)</label>
+                                        <input type="number" class="form-control" id="federalTax" value="22.0" step="0.1" min="0" max="40">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="stateTax" class="form-label">State Tax Rate (%)</label>
+                                        <input type="number" class="form-control" id="stateTax" value="6.5" step="0.1" min="0" max="15">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="socialSecurity" class="form-label">Social Security Rate (%)</label>
+                                        <input type="number" class="form-control" id="socialSecurity" value="6.2" step="0.1" min="0" max="10">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="medicare" class="form-label">Medicare Rate (%)</label>
+                                        <input type="number" class="form-control" id="medicare" value="1.45" step="0.1" min="0" max="5">
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="automaticTax" checked>
+                                        <label class="form-check-label" for="automaticTax">
+                                            Automatic Tax Calculation
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- User Management -->
+                                <div class="tab-pane" id="users">
+                                    <h5 class="card-title">User Management</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>Role</th>
+                                                    <th>Last Login</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>admin</td>
+                                                    <td>Administrator</td>
+                                                    <td>2023-04-15 14:30</td>
+                                                    <td><span class="badge bg-success">Active</span></td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>hr_manager</td>
+                                                    <td>HR Manager</td>
+                                                    <td>2023-04-14 09:15</td>
+                                                    <td><span class="badge bg-success">Active</span></td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>payroll_clerk</td>
+                                                    <td>Payroll Clerk</td>
+                                                    <td>2023-04-13 16:45</td>
+                                                    <td><span class="badge bg-success">Active</span></td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button class="btn btn-primary mt-3">
+                                        <i class="fas fa-plus"></i> Add New User
+                                    </button>
+                                </div>
+                                
+                                <!-- Security Settings -->
+                                <div class="tab-pane" id="security">
+                                    <h5 class="card-title">Security Settings</h5>
+                                    <div class="mb-3">
+                                        <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
+                                        <input type="number" class="form-control" id="sessionTimeout" value="30" min="5" max="240">
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="twoFactor" checked>
+                                        <label class="form-check-label" for="twoFactor">
+                                            Enable Two-Factor Authentication
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="passwordPolicy" checked>
+                                        <label class="form-check-label" for="passwordPolicy">
+                                            Enforce Password Policy
+                                        </label>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="passwordExpiry" class="form-label">Password Expiry (days)</label>
+                                        <input type="number" class="form-control" id="passwordExpiry" value="90" min="30" max="365">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="failedAttempts" class="form-label">Max Failed Login Attempts</label>
+                                        <input type="number" class="form-control" id="failedAttempts" value="5" min="1" max="10">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Sidebar Toggle
+        document.getElementById('sidebarCollapse').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('content').classList.toggle('active');
+        });
+
+        // Page Navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all nav links
+                document.querySelectorAll('.nav-link').forEach(item => {
+                    item.parentElement.classList.remove('active');
+                });
+                
+                // Add active class to current nav link
+                this.parentElement.classList.add('active');
+                
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // Show current page
+                const pageId = this.getAttribute('data-page');
+                document.getElementById(pageId).classList.add('active');
+                
+                // Close sidebar on mobile after navigation
+                if (window.innerWidth < 768) {
+                    document.getElementById('sidebar').classList.add('active');
+                    document.getElementById('content').classList.add('active');
+                }
+            });
+        });
+
+        // Settings Tab Navigation
+        document.querySelectorAll('[data-setting]').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const setting = this.getAttribute('data-setting');
+                
+                // Remove active class from all tabs
+                document.querySelectorAll('[data-setting]').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Add active class to current tab
+                this.classList.add('active');
+                
+                // Hide all tab panes
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                });
+                
+                // Show current tab pane
+                document.getElementById(setting).classList.add('active');
+            });
+        });
+
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Payroll Chart
+            const payrollCtx = document.getElementById('payrollChart').getContext('2d');
+            const payrollChart = new Chart(payrollCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Total Payroll',
+                        data: [220000, 235000, 240000, 245000, 250000, 255000],
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+
+            // Department Chart
+            const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+            const departmentChart = new Chart(departmentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'],
+                    datasets: [{
+                        data: [35, 20, 25, 10, 10],
+                        backgroundColor: [
+                            '#4361ee',
+                            '#3a0ca3',
+                            '#7209b7',
+                            '#f72585',
+                            '#4cc9f0'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+
+            // Payroll Trends Chart
+            const trendsCtx = document.getElementById('payrollTrendsChart').getContext('2d');
+            const trendsChart = new Chart(trendsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+                    datasets: [{
+                        label: 'Gross Pay',
+                        data: [220000, 235000, 240000, 245000],
+                        backgroundColor: '#4361ee'
+                    }, {
+                        label: 'Net Pay',
+                        data: [165000, 176250, 180000, 183750],
+                        backgroundColor: '#4cc9f0'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+
+            // Department Costs Chart
+            const costsCtx = document.getElementById('departmentCostsChart').getContext('2d');
+            const costsChart = new Chart(costsCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Engineering', 'Marketing', 'Sales', 'HR'],
+                    datasets: [{
+                        data: [120000, 65000, 80000, 35000],
+                        backgroundColor: [
+                            '#4361ee',
+                            '#3a0ca3',
+                            '#7209b7',
+                            '#f72585'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+
+            // Tax Distribution Chart
+            const taxCtx = document.getElementById('taxDistributionChart').getContext('2d');
+            const taxChart = new Chart(taxCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Federal Tax', 'State Tax', 'Social Security', 'Medicare'],
+                    datasets: [{
+                        data: [22, 6.5, 6.2, 1.45],
+                        backgroundColor: [
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(58, 12, 163, 0.7)',
+                            'rgba(114, 9, 183, 0.7)',
+                            'rgba(247, 37, 133, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+
+            // Employee Count Chart
+            const employeeCtx = document.getElementById('employeeCountChart').getContext('2d');
+            const employeeChart = new Chart(employeeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'],
+                    datasets: [{
+                        label: 'Employee Count',
+                        data: [50, 28, 36, 15, 13],
+                        backgroundColor: '#4361ee'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
